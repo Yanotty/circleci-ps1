@@ -1,22 +1,21 @@
- version: 2
- jobs:
-   one:
-     docker:
-       - image: circleci/ruby:2.4.1
-     steps:
-       - checkout
-       - run: echo "A first hello"
-       - run: sleep 25
-   two:
-     docker:
-       - image: circleci/ruby:2.4.1
-     steps:
-       - checkout
-       - run: echo "A more familiar hi"
-       - run: sleep 15
- workflows:
-   version: 2
-   one_and_two:
-     jobs:
-       - one
-       - two
+workflows:
+  version: 2
+  build-test-and-approval-deploy:
+    jobs:
+
+      - build  # 設定ファイルに含まれるカスタム ジョブ。コードをビルドします。
+      - test1: # カスタム ジョブ。テスト スイート 1 を実行します。
+          requires: # `build` ジョブが完了するまで、test1 は実行されません。
+            - build
+      - test2: # 別のカスタム ジョブ。テスト スイート 2 を実行します。
+          requires: # test2 は、ジョブ `test1` が成功するかどうかに依存します。
+            - test1
+      - hold: # <<< CircleCI Web アプリケーションで手動承認を必要とするジョブ。
+          type: approval # <<< このキー・値のペアにより、ワークフローのステータスが "On Hold" に設定されます。
+          requires: # test2 が成功した場合にのみ "hold" ジョブを実行します。
+           - test2
+      # `hold` ジョブが承認されると、`hold` ジョブを必要とする後続のジョブが実行されます。
+      # この例では、ユーザーが手動でデプロイ ジョブをトリガーしています。
+      - deploy:
+          requires:
+            - hold
