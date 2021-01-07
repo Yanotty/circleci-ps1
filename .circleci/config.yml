@@ -10,6 +10,7 @@ jobs:
       - run:
           name: Run test
           command: 'ruby test_sum.rb'
+ 
 workflows:
   version: 2
   workflows:
